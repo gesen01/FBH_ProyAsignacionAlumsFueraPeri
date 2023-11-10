@@ -202,7 +202,10 @@ DECLARE
 @ToleranciaRedondeo     float,
 @SaldoCliente           float,
 @FormaCalificacion      varchar(20),
-@AlumnosInscritosPermitidos int
+@AlumnosInscritosPermitidos INT,
+@AlumnosRegistrados	    INT,
+@AlumnosCalif		    INT,
+@AlumnosSinAsig	    VARCHAR(255)=''
 DECLARE @Tabla Table
 (Materia         varchar(20),
 Fecha           datetime,
@@ -1573,11 +1576,46 @@ SELECT @Ok = 1000083, @OkRef = @OkRef + ' (' + @MateriaD + ')'
 END
 --IGGR
 --09/11/2023. IGGR. Esta validación se omite para que no impida la asignacion de alumnos al movimiento de calificaciones y calificaciones Extenporaneas
-/*IF @MovTipo IN('CE.CL','CE.AS','CE.CP') AND @EstatusNuevo = 'CONCLUIDO'
+IF @MovTipo IN('CE.CL','CE.AS','CE.CP') AND @EstatusNuevo = 'CONCLUIDO'
 BEGIN
-IF  EXISTS(SELECT Alumno FROM CEAlumnoMateriasGrupoCursando WHERE Materia = @Materia AND Grupo = @Grupo AND CicloEscolar = @CicloEscolar AND NivelAcademico = @NivelAcademicoD AND Programa = @ProgramaD AND PlanEstudios = @PlanEstudiosD AND Sucursal = @Sucursal UNION SELECT  Alumno FROM  CED WHERE ID = @ID)
-SELECT @OK= 1000063, @OkRef = @OkRef + ' (' + (SELECT TOP 1 Alumno FROM (SELECT Alumno FROM CEAlumnoMateriasGrupoCursando WHERE Materia = @Materia AND Grupo = @Grupo AND CicloEscolar = @CicloEscolar AND NivelAcademico = @NivelAcademicoD AND Programa = @ProgramaD AND PlanEstudios = @PlanEstudiosD AND Sucursal = @Sucursal EXCEPT SELECT  Alumno FROM  CED WHERE ID = @ID)As t) + ')'
-END*/
+
+IF @Mov<>'Calificaciones Exten'
+BEGIN
+
+SELECT @AlumnosRegistrados=COUNT(Alumno)
+FROM CEAlumnoMateriasGrupoCursando
+ WHERE Materia = @Materia 
+ AND Grupo = @Grupo 
+ AND CicloEscolar = @CicloEscolar 
+ AND NivelAcademico = @NivelAcademicoD 
+ AND Programa = @ProgramaD 
+ AND PlanEstudios = @PlanEstudiosD 
+ AND Sucursal = @Sucursal 
+ 
+ SELECT  @AlumnosCalif=COUNT(Alumno)
+ FROM  CED WHERE ID = @ID
+
+IF @AlumnosCalif < @AlumnosRegistrados
+BEGIN
+	SELECT @AlumnosSinAsig=@AlumnosSinAsig+c.Alumno+','
+	FROM CEAlumnoMateriasGrupoCursando c
+	 WHERE c.Materia = @Materia 
+	 AND c.Grupo = @Grupo 
+	 AND c.CicloEscolar = @CicloEscolar 
+	 AND c.NivelAcademico = @NivelAcademicoD 
+	 AND c.Programa = @ProgramaD 
+	 AND c.PlanEstudios = @PlanEstudiosD 
+	 AND c.Sucursal = @Sucursal 
+	 AND NOT EXISTS(SELECT d.Alumno FROM CED d WHERE c.Alumno=d.Alumno)
+
+	 SELECT @AlumnosSinAsig=LTRIM(RTRIM(@AlumnosSinAsig))
+
+	SELECT @OK= 1000063, @OkRef = @OkRef + ' ('+@AlumnosSinAsig+')' 
+END
+
+END
+
+END
 IF @MovTipo IN('CE.CP') AND @EstatusNuevo = 'CONCLUIDO'
 BEGIN
 SELECT @NivelMateria = Nivel,
