@@ -1574,12 +1574,13 @@ BEGIN
 IF EXISTS (SELECT * FROM CEAlumnoMateriasProgramaAprobadas  WHERE  Alumno = @Alumno AND Materia = @MateriaD AND PlanEstudios = @PlanEstudios AND Programa = @Programa)
 SELECT @Ok = 1000083, @OkRef = @OkRef + ' (' + @MateriaD + ')'
 END
---IGGR
+--
+--
 --09/11/2023. IGGR. Esta validación se omite para que no impida la asignacion de alumnos al movimiento de calificaciones y calificaciones Extenporaneas
 IF @MovTipo IN('CE.CL','CE.AS','CE.CP') AND @EstatusNuevo = 'CONCLUIDO'
 BEGIN
 
-IF @Mov<>'Calificaciones Exten'
+IF @Mov<>'Calificacion Extem'
 BEGIN
 
 SELECT @AlumnosRegistrados=COUNT(Alumno)

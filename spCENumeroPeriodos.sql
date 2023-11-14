@@ -36,7 +36,7 @@ AS BEGIN
     SET @Contador = @Contador + 1
   END 
   
- IF @Mov NOT IN ('Ajuste Calificacion','Calificacion exten')
+ IF @Mov NOT IN ('Ajuste Calificacion','Calificacion Extem')
   DELETE FROM @Tabla WHERE Periodo IN (SELECT ISNULL(PeriodoAsig,0) FROM CE a JOIN MovTipo b ON a.Mov = b.Mov AND Modulo = 'CE' AND Clave IN ('CE.CP') WHERE Empresa = @Empresa AND Sucursal = @Sucursal AND CicloEscolar = @CicloEscolar AND Materia = @Materia AND a.Grupo = @Grupo AND Estatus = 'CONCLUIDO')
    
   SELECT * FROM @Tabla
